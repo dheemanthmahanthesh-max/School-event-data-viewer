@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Event Data Viewer</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #dbeafe, #f0f9ff, #bfdbfe);
+            color: #1e293b;
+            min-height: 100vh;
+            padding: 35px 15px;
+        }
+
+        .event-card {
+            width: 100%;
+            max-width: 850px;
+            margin: auto;
+            background: white;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(30, 64, 175, 0.15);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 40px 25px;
+            text-align: center;
+        }
+
+        .header-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 30px;
+            margin-bottom: 12px;
+        }
+
+        .header p {
+            color: #dbeafe;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .load-section {
+            text-align: center;
+            padding: 10px 0 25px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 18px rgba(37, 99, 235, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border: 2px solid #dbeafe;
+            border-radius: 15px;
+            padding: 22px;
+            margin-top: 20px;
+        }
+
+        .info-box h2 {
+            color: #1d4ed8;
+            font-size: 19px;
+            margin-bottom: 15px;
+        }
+
+        #status {
+            color: #64748b;
+            font-weight: bold;
+            line-height: 1.6;
+        }
+
+        .status-loading {
+            color: #d97706 !important;
+        }
+
+        .status-success {
+            color: #15803d !important;
+        }
+
+        .event-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #3b82f6;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .detail-item strong {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .detail-item span {
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .registration-status {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534 !important;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        #jsonOutput {
+            background: #172554;
+            color: #bfdbfe;
+            border-radius: 10px;
+            padding: 18px;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            overflow-x: auto;
+        }
+
+        .footer {
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            padding: 18px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        @media (max-width: 550px) {
+            .content {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .event-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="event-card">
+
+        <div class="header">
+            <div class="header-icon">📚</div>
+            <h1>School Event Data Viewer</h1>
+            <p>
+                Explore school event information using JSON,
+                Promises and asynchronous JavaScript.
+            </p>
+        </div>
+
+        <div class="content">
+
+            <div class="load-section">
+                <button id="loadButton" onclick="showSchoolEvent()">
+                    📥 Load Event Details
+                </button>
+            </div>
+
+            <div class="info-box">
+                <h2>⚡ Loading Status</h2>
+                <p id="status">Waiting to load event data...</p>
+            </div>
+
+            <div class="info-box">
+                <h2>📅 Event Details</h2>
+
+                <div class="event-grid" id="eventDetails">
+                    <p>Click the button above to display event information.</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h2>💻 JSON Text Output</h2>
+                <pre id="jsonOutput">JSON data will appear here...</pre>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            © 2026 School Event Data Viewer | Powered by JavaScript
+        </div>
+
+    </div>
+
+    <script>
+
+        // PART 1: Callback function
+        function showLoadingMessage(message) {
+            document.getElementById("status").textContent = message;
+            document.getElementById("status").className = "status-loading";
+        }
+
+        // PART 2: Promise in JavaScript
+        function fetchSchoolEventData(callback) {
+
+            callback("Loading school event data... Please wait.");
+
+            return new Promise(function (resolve) {
+
+                // Asynchronous JavaScript using setTimeout()
+                setTimeout(function () {
+
+                    // JSON data
+                    let schoolEvent = {
+                        eventName: "Annual Science Fair",
+                        date: "25 August 2026",
+                        time: "10:00 AM",
+                        venue: "School Auditorium",
+                        coordinator: "Ms. Priya",
+                        participants: 120,
+                        isRegistrationOpen: true
+                    };
+
+                    resolve(schoolEvent);
+
+                }, 2000);
+
+            });
+        }
+
+        // PART 3: async/await in JavaScript
+        async function showSchoolEvent() {
+
+            let button = document.getElementById("loadButton");
+            let eventDetails = document.getElementById("eventDetails");
+            let jsonOutput = document.getElementById("jsonOutput");
+            let status = document.getElementById("status");
+
+            button.disabled = true;
+            button.textContent = "⏳ Loading...";
+
+            eventDetails.textContent = "Fetching event information...";
+            jsonOutput.textContent = "Preparing JSON data...";
+
+            try {
+
+                let eventData = await fetchSchoolEventData(showLoadingMessage);
+
+                status.textContent = "✓ Event data loaded successfully!";
+                status.className = "status-success";
+
+                // JSON.stringify()
+                let jsonText = JSON.stringify(eventData, null, 2);
+
+                // JSON.parse()
+                let parsedEvent = JSON.parse(jsonText);
+
+                // String concatenation to build the final display message
+                let eventMessage = "";
+
+                eventMessage +=
+                    '<div class="detail-item"><strong>Event Name</strong><span>' +
+                    parsedEvent.eventName + '</span></div>';
+
+                eventMessage +=
+                    '<div class="detail-item"><strong>Date</strong><span>' +
+                    parsedEvent.date + '</span></div>';
+
+                eventMessage +=
+                    '<div class="detail-item"><strong>Time</strong><span>' +
+                    parsedEvent.time + '</span></div>';
+
+                eventMessage +=
+                    '<div class="detail-item"><strong>Venue</strong><span>' +
+                    parsedEvent.venue + '</span></div>';
+
+                eventMessage +=
+                    '<div class="detail-item"><strong>Coordinator</strong><span>' +
+                    parsedEvent.coordinator + '</span></div>';
+
+                eventMessage +=
+                    '<div class="detail-item"><strong>Participants</strong><span>' +
+                    parsedEvent.participants + '</span></div>';
+
+                if (parsedEvent.isRegistrationOpen === true) {
+
+                    eventMessage +=
+                        '<div class="detail-item"><strong>Registration Status</strong>' +
+                        '<span class="registration-status">Open</span></div>';
+
+                } else {
+
+                    eventMessage +=
+                        '<div class="detail-item"><strong>Registration Status</strong>' +
+                        '<span class="registration-status">Closed</span></div>';
+
+                }
+
+                eventDetails.innerHTML = eventMessage;
+
+                // Display JSON output
+                jsonOutput.textContent = jsonText;
+
+            } catch (error) {
+
+                status.textContent = "Unable to load event data.";
+                status.className = "";
+                eventDetails.textContent = "Something went wrong.";
+                jsonOutput.textContent = String(error);
+
+            } finally {
+
+                button.disabled = false;
+                button.textContent = "🔄 Reload Event Details";
+
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
